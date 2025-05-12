@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vòng Quay May Mắn</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/zarocknz/javascript-winwheel@master/Winwheel.min.js"></script>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      color: #ff4500;
+      margin-top: 20px;
+      font-size: 28px;
+    }
+
+    p.notice {
+      color: #444;
+      font-size: 16px;
+      margin: 10px 20px;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+    }
+
+    #spinBtn {
+      margin: 20px auto;
+      padding: 15px 30px;
+      background: #ff4500;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      width: 80%;
+      max-width: 300px;
+    }
+
+    #result {
+      margin: 20px auto;
+      font-size: 18px;
+      color: #006400;
+      max-width: 90%;
+      white-space: pre-line;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 22px;
+      }
+
+      #spinBtn {
+        font-size: 16px;
+        padding: 12px 20px;
+      }
+
+      #result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 VÒNG QUAY MAY MẮN</h1>
+  <p class="notice">*Mỗi thiết bị chỉ được quay một lần duy nhất.</p>
+  <canvas id="pointerCanvas" width="300" height="30"></canvas>
+  <canvas id="myCanvas" width="300" height="300"></canvas>
+  <button id="spinBtn" onclick="startSpin()">🎯 QUAY NGAY</button>
+  <div id="result"></div>
+
+  <script>
+    // Vẽ mũi tên chỉ hướng
+    const pointerCanvas = document.getElementById("pointerCanvas");
+    const ctx = pointerCanvas.getContext("2d");
+    ctx.fillStyle = "#ff4500";
+    ctx.beginPath();
+    ctx.moveTo(150, 30);
+    ctx.lineTo(130, 0);
+    ctx.lineTo(170, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Danh sách phần thưởng
+    const prizeList = [
+      { fillStyle: "#eae56f", text: "Tặng tất" },
+      { fillStyle: "#89f26e", text: "Tặng kính" },
+      { fillStyle: "#7de6ef", text: "Tặng móc khóa" },
+      { fillStyle: "#e7706f", text: "Chúc may mắn" },
+      { fillStyle: "#ccc", text: "Giảm 5%" },
+      { fillStyle: "#ccc", text: "Chúc may mắn" }
+    ];
+
+    // Gán phần thưởng theo tên cố định
+    const rewardMapping = {
+      'ngoc': 1,
+      'linh': 2,
+      'minh': 0
+    };
+
+    const theWheel = new Winwheel({
+      canvasId: 'myCanvas',
+      numSegments: prizeList.length,
+      outerRadius: 140,
+      segments: prizeList,
+      animation: {
+        type: 'spinToStop',
+        duration: 5,
+        spins: 8,
+        callbackFinished: alertPrize
+      }
+    });
+
+    function startSpin() {
+      // Chặn nếu đã quay rồi
+      if (localStorage.getItem('hasSpun') === 'true') {
+        alert("⚠️ Bạn đã quay rồi! Mỗi thiết bị chỉ được quay 1 lần duy nhất.");
+        return;
+      }
+
+      const name = prompt("Nhập tên của bạn để tham gia:");
+      if (!name) return;
+      const username = name.trim().toLowerCase();
+
+      // Đánh dấu thiết bị đã quay
+      localStorage.setItem('hasSpun', 'true');
+
+      let stopAt = rewardMapping[username] ?? Math.floor(Math.random() * theWheel.segments.length);
+      const segment = theWheel.segments[stopAt + 1];
+      const stopAngle = (segment.startAngle + segment.endAngle) / 2;
+
+      theWheel.stopAnimation(false);
+      theWheel.rotationAngle = 0;
+      theWheel.animation.stopAngle = stopAngle;
+      theWheel.startAnimation();
+    }
+
+    function alertPrize(indicatedSegment) {
+      document.getElementById("result").innerText =
+        "🎉 Chúc mừng! Bạn nhận được: " + indicatedSegment.text +
+        "\n\n📌 Mỗi thiết bị chỉ được quay một lần. Cảm ơn bạn đã tham gia!";
+    }
+  </script>
+</body>
+</html>
